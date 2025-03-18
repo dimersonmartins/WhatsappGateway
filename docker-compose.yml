@@ -2,8 +2,6 @@ version: '3.8'
 
 services:
   whatsapp_gateway:
-    depends_on:
-      - init-container
     image: chrishubert/whatsapp-web-api:latest
     ports:
       - "5300:3000"
@@ -39,12 +37,6 @@ services:
         - traefik.http.routers.whatsapp_gateway.service=whatsapp_gateway
         - traefik.http.services.whatsapp_gateway.loadbalancer.server.port=5300
         - traefik.http.services.whatsapp_gateway.loadbalancer.passHostHeader=true
-
-init-container:
-    image: alpine
-    command: [ "sh", "-c", "docker volume create --name=whatsapp_gateway_sessions && docker network create whatsapp_gateway_network || true" ]
-    networks:
-      - whatsapp_gateway_network
 
 volumes:
   whatsapp_gateway_sessions:
