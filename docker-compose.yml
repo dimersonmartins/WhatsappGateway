@@ -1,14 +1,18 @@
 version: '3.8'
 
 services:
-  api_zdg:
+  whatsapp_gateway:
+    depends_on:
+      - init-container
     image: chrishubert/whatsapp-web-api:latest
+    ports:
+      - "5300:3000"
     networks:
-      - comunidadezdg
+      - whatsapp_gateway_network
     volumes:
-    - api_zdg_sessions:/usr/src/app/sessions
+    - whatsapp_gateway_sessions:/usr/src/app/sessions
     environment:
-      - API_KEY=comunidadezdg  # OPTIONAL
+      - API_KEY=8v0h8t4rFDif98vcIDkPVYveyuaT  # OPTIONAL
       - BASE_WEBHOOK_URL=https://omnichannel.hmg.omnigestor.com/whatsapp-callback
       - ENABLE_LOCAL_CALLBACK_EXAMPLE=TRUE # OPTIONAL, NOT RECOMMENDED FOR PRODUCTION
       - MAX_ATTACHMENT_SIZE=5000000 # IN BYTES
@@ -28,20 +32,26 @@ services:
           memory: 2048M
       labels:
         - traefik.enable=true
-        - traefik.http.routers.api_zdg.rule=Host(`api2024.comunidadezdg.com.br`)
-        - traefik.http.routers.api_zdg.entrypoints=websecure
-        - traefik.http.routers.api_zdg.tls.certresolver=letsencryptresolver
-        - traefik.http.routers.api_zdg.priority=1
-        - traefik.http.routers.api_zdg.service=api_zdg
-        - traefik.http.services.api_zdg.loadbalancer.server.port=3000
-        - traefik.http.services.api_zdg.loadbalancer.passHostHeader=true
+        - traefik.http.routers.whatsapp_gateway.rule=Host(`api2024.comunidadezdg.com.br`)
+        - traefik.http.routers.whatsapp_gateway.entrypoints=websecure
+        - traefik.http.routers.whatsapp_gateway.tls.certresolver=letsencryptresolver
+        - traefik.http.routers.whatsapp_gateway.priority=1
+        - traefik.http.routers.whatsapp_gateway.service=whatsapp_gateway
+        - traefik.http.services.whatsapp_gateway.loadbalancer.server.port=5300
+        - traefik.http.services.whatsapp_gateway.loadbalancer.passHostHeader=true
+
+init-container:
+    image: alpine
+    command: [ "sh", "-c", "docker volume create --name=whatsapp_gateway_sessions && docker network create whatsapp_gateway_network || true" ]
+    networks:
+      - whatsapp_gateway_network
 
 volumes:
-  api_zdg_sessions:
+  whatsapp_gateway_sessions:
     external: true
-    name: api_zdg_sessions
+    name: whatsapp_gateway_sessions
 
 networks:
-  comunidadezdg:
-    name: comunidadezdg
+  whatsapp_gateway_network:
+    name: whatsapp_gateway_network
     external: true
